@@ -1,8 +1,8 @@
 <template>
   <div v-tooltip="tooltip" class="relative group flex w-16 h-16 bg-50 rounded-full overflow-hidden" :class="{ 'shadow-danger': media.uploadingFailed }">
     <loader v-if="previewLoading" class="text-60" :width="30" />
-    <img v-if="preview" :src="preview" :alt="media.fileName" class="w-16 h-16 object-cover" :class="{ 'group-hover:opacity-75': !media.uploading }">
-    <div v-if="!previewLoading && !preview" class="w-16 h-16 flex items-center justify-center" :class="{ 'group-hover:hidden': !media.uploading }">
+    <img v-if="preview && !hidePreview" :src="preview" :alt="media.fileName" class="w-16 h-16 object-cover" :class="{ 'group-hover:opacity-75': !media.uploading }">
+    <div v-if="!previewLoading && (!preview || hidePreview)" class="w-16 h-16 flex items-center justify-center" :class="{ 'group-hover:hidden': !media.uploading }">
       {{ media.extension }}
     </div>
 
@@ -33,6 +33,7 @@
 
 <script>
 import { tooltip } from './Utils'
+import { context } from './Context.js';
 
 export default {
   props: {
@@ -40,6 +41,10 @@ export default {
       type: Object,
       required: true,
     },
+  },
+
+  inject: {
+    context,
   },
 
   data() {
@@ -50,6 +55,10 @@ export default {
   },
 
   computed: {
+    hidePreview() {
+      return this.context.field.hidePreview;
+    },
+
     sizeInKb() {
       return (this.media.size / 1024).toFixed(2)
     },
@@ -95,6 +104,10 @@ export default {
 
   methods: {
     loadPreview() {
+      if (this.hidePreview) {
+        return
+      }
+
       if (this.media.isImage) {
         this.preview = this.media.previewUrl
       } else {
